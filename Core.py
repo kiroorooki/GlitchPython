@@ -19,6 +19,7 @@ previousGlitchCanvas = None
 thumbnailSize = 300
 glitchHistory = []
 glitchHistorylistBox = None
+glitchCoordinateRectangles = []
 
 mainWindow = None
 glitchWindowName = 'glitchWindow'
@@ -34,7 +35,7 @@ def Initialization():
 def OpenImage():
     image = cv2.imread(filedialog.askopenfilename(), 1)
     global currentImage, currentGlitch
-    if image.any() != None:
+    if image is not None:
         currentImage = image
         currentGlitch = image
         global mainWindow
@@ -149,29 +150,29 @@ def SaveFile(filepath, fileToSave):
 def ShowCurrentImageThumbnail(img):
     global currentImageTk, currentImageCanvas
     currentImageTk = ConvertImageFromOCVToTkinter(img)
-    currentImageTk.thumbnail([thumbnailSize,thumbnailSize])
+    currentImageTk.thumbnail([thumbnailSize, thumbnailSize])
     imgSize = [currentImageTk.width, currentImageTk.height]
     offset = [(thumbnailSize - imgSize[0]) / 2, (thumbnailSize - imgSize[1]) / 2,0]
     currentImageTk = ImageTk.PhotoImage(image=currentImageTk)
-    currentImageCanvas.create_image(offset[0], offset[1], anchor=NW, image=currentImageTk)
+    currentImageCanvas.create_image(offset[0], offset[1], anchor=NW, image=currentImageTk, tag="image")
 
 def ShowCurrentGlitchThumbnail(img):
     global currentGlitchTk, currentGlitchCanvas
     currentGlitchTk = ConvertImageFromOCVToTkinter(img)
-    currentGlitchTk.thumbnail([thumbnailSize,thumbnailSize])
+    currentGlitchTk.thumbnail([thumbnailSize, thumbnailSize])
     imgSize = [currentGlitchTk.width, currentGlitchTk.height]
     offset = [(thumbnailSize - imgSize[0]) / 2, (thumbnailSize - imgSize[1]) / 2,0]
     currentGlitchTk = ImageTk.PhotoImage(image=currentGlitchTk)
-    currentGlitchCanvas.create_image(offset[0], offset[1], anchor=NW, image=currentGlitchTk)
+    currentGlitchCanvas.create_image(offset[0], offset[1], anchor=NW, image=currentGlitchTk, tag="image")
 
 def ShowPreviousGlitchThumbnail(img):
     global previousGlitchTk, previousGlitchCanvas
     previousGlitchTk = ConvertImageFromOCVToTkinter(img)
-    previousGlitchTk.thumbnail([thumbnailSize,thumbnailSize])
+    previousGlitchTk.thumbnail([thumbnailSize, thumbnailSize])
     imgSize = [previousGlitchTk.width, previousGlitchTk.height]
     offset = [(thumbnailSize - imgSize[0]) / 2, (thumbnailSize - imgSize[1]) / 2,0]
     previousGlitchTk = ImageTk.PhotoImage(image=previousGlitchTk)
-    previousGlitchCanvas.create_image(offset[0], offset[1], anchor=NW, image=previousGlitchTk)
+    previousGlitchCanvas.create_image(offset[0], offset[1], anchor=NW, image=previousGlitchTk, tag="image")
 
 def AddGlitchHistory(img):
     global glitchHistory, glitchHistorylistBox, currentGlitchType
@@ -182,14 +183,28 @@ def AddGlitchHistory(img):
     if len(glitchHistory) >= 2 : ShowPreviousGlitchThumbnail(glitchHistory[len(glitchHistory) - 2])
 
 def DrawSelectionZone(x0, x1, y0, y1):
-    global currentImage, currentGlitch
-    tempCurrentImage = currentImage
-    tempCurrentGlitch = currentGlitch
-    cv2.rectangle(tempCurrentImage,(x0, y0),(x1, y1),(0,255,0),10)
-    cv2.rectangle(tempCurrentGlitch,(x0, y0),(x1, y1),(0,255,0),10)
-    ShowCurrentImageThumbnail(tempCurrentImage)
-    ShowCurrentGlitchThumbnail(tempCurrentGlitch)
+    global glitchCoordinateRectangles, currentImageCanvas, currentGlitchCanvas, currentImage, currentGlitch
+    currentImageThumb = currentImageCanvas.find_withtag("image")
+    thumbCoordinates = currentImageCanvas.bbox(currentImageThumb)
+    x0 *= (thumbCoordinates[2] - thumbCoordinates[0]) / currentImage.shape[1]
+    y0 *= (thumbCoordinates[3] - thumbCoordinates[1]) / currentImage.shape[0]
+    x1 *= (thumbCoordinates[2] - thumbCoordinates[0]) / currentImage.shape[1]
+    y1 *= (thumbCoordinates[3] - thumbCoordinates[1]) / currentImage.shape[0]
+    x0 += thumbCoordinates[0]
+    y0 += thumbCoordinates[1]
+    x1 += thumbCoordinates[0]
+    y1 += thumbCoordinates[1]
+    if len(glitchCoordinateRectangles) > 0:
+        ClearSelectionZone()
+    glitchCoordinateRectangles.append(currentImageCanvas.create_rectangle(x0, y0, x1, y1, width=1, outline='green'))
+    glitchCoordinateRectangles.append(currentGlitchCanvas.create_rectangle(x0, y0, x1, y1, width=1, outline='green'))
 
+def ClearSelectionZone():
+    global glitchCoordinateRectangles
+    if len(glitchCoordinateRectangles) > 0:
+            currentImageCanvas.delete(glitchCoordinateRectangles[0])
+            currentGlitchCanvas.delete(glitchCoordinateRectangles[1])
+            glitchCoordinateRectangles.clear()
 
 from Classes import *
 from ClassSelector import *
