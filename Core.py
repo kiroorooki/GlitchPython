@@ -181,5 +181,15 @@ def AddGlitchHistory(img):
     glitchHistorylistBox.select_set(len(glitchHistory) - 1)
     if len(glitchHistory) >= 2 : ShowPreviousGlitchThumbnail(glitchHistory[len(glitchHistory) - 2])
 
+def DrawSelectionZone(x0, x1, y0, y1):
+    global currentImage, currentGlitch
+    tempCurrentImage = currentImage
+    tempCurrentGlitch = currentGlitch
+    cv2.rectangle(tempCurrentImage,(x0, y0),(x1, y1),(0,255,0),10)
+    cv2.rectangle(tempCurrentGlitch,(x0, y0),(x1, y1),(0,255,0),10)
+    ShowCurrentImageThumbnail(tempCurrentImage)
+    ShowCurrentGlitchThumbnail(tempCurrentGlitch)
+
+
 from Classes import *
 from ClassSelector import *
