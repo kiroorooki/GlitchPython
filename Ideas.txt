@@ -1,0 +1,13 @@
+Line repam :
+
+1 bottom 1 top
+
+full remap
+
+
+
+options:
+replace only a section of lines
+remap only a column
+chance to reuse lines direct, number of reuse
+chance to reuse lines
